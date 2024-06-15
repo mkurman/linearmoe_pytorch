@@ -21,7 +21,7 @@ class LinearMoE(nn.Linear):
         gate = self.gate(x).softmax(dim=-1).squeeze(-1)
         experts = rearrange(self.experts, 'e -> 1 1 e 1')
 
-        x = x * (1 + (experts * gate).mean(-1, keepdim=True))]
+        x = x * (1 + (experts * gate).mean(-1, keepdim=True))
         x = x + self.bias2.unsqueeze(0)
 
         # Optimize top-k selection and gathering
