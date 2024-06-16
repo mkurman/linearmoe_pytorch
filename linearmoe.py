@@ -12,6 +12,7 @@ class LinearMoE(nn.Linear):
         self.gate = nn.Linear(in_features, r, bias=False)
         self.experts = nn.Parameter(torch.ones(num_experts), requires_grad=True)
         self.bias2 = nn.Parameter(torch.zeros(num_experts, in_features), requires_grad=True)
+        self.activation = nn.SiLU()
 
         self.reset_parameters()
 
@@ -21,7 +22,7 @@ class LinearMoE(nn.Linear):
         gate = self.gate(x).softmax(dim=-1).squeeze(-1)
         experts = rearrange(self.experts, 'e -> 1 1 e 1')
 
-        x = x * (1 + (experts * gate).mean(-1, keepdim=True))
+        x = x * (1 + self.activation((experts * gate).mean(-1, keepdim=True)))
         x = x + self.bias2.unsqueeze(0)
 
         # Optimize top-k selection and gathering
